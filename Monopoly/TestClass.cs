@@ -28,20 +28,20 @@ namespace Monopoly
         [Test]
         public void GetFieldsListReturnCorrectList()
         {
-            Tuple<string, Monopoly.Type, int, bool>[] expectedCompanies = 
-                new Tuple<string, Monopoly.Type, int, bool>[]{
-                new Tuple<string,Monopoly.Type,int,bool>("Ford",Monopoly.Type.AUTO,0,false),
-                new Tuple<string,Monopoly.Type,int,bool>("MCDonald", Monopoly.Type.FOOD, 0, false),
-                new Tuple<string,Monopoly.Type,int,bool>("Lamoda", Monopoly.Type.CLOTHER, 0, false),
-                new Tuple<string, Monopoly.Type, int, bool>("Air Baltic",Monopoly.Type.TRAVEL,0,false),
-                new Tuple<string, Monopoly.Type, int, bool>("Nordavia",Monopoly.Type.TRAVEL,0,false),
-                new Tuple<string, Monopoly.Type, int, bool>("Prison",Monopoly.Type.PRISON,0,false),
-                new Tuple<string, Monopoly.Type, int, bool>("MCDonald",Monopoly.Type.FOOD,0,false),
-                new Tuple<string, Monopoly.Type, int, bool>("TESLA",Monopoly.Type.AUTO,0,false)
+            Tuple<string, Monopoly.FieldType, int, bool>[] expectedCompanies = 
+                new Tuple<string, Monopoly.FieldType, int, bool>[]{
+                new Tuple<string,Monopoly.FieldType,int,bool>("Ford",Monopoly.FieldType.AUTO,0,false),
+                new Tuple<string,Monopoly.FieldType,int,bool>("MCDonald", Monopoly.FieldType.FOOD, 0, false),
+                new Tuple<string,Monopoly.FieldType,int,bool>("Lamoda", Monopoly.FieldType.CLOTHER, 0, false),
+                new Tuple<string, Monopoly.FieldType, int, bool>("Air Baltic",Monopoly.FieldType.TRAVEL,0,false),
+                new Tuple<string, Monopoly.FieldType, int, bool>("Nordavia",Monopoly.FieldType.TRAVEL,0,false),
+                new Tuple<string, Monopoly.FieldType, int, bool>("Prison",Monopoly.FieldType.PRISON,0,false),
+                new Tuple<string, Monopoly.FieldType, int, bool>("MCDonald",Monopoly.FieldType.FOOD,0,false),
+                new Tuple<string, Monopoly.FieldType, int, bool>("TESLA",Monopoly.FieldType.AUTO,0,false)
             };
             string[] players = new string[] { "Peter", "Ekaterina", "Alexander" };
             Monopoly monopoly = new Monopoly(players, 3);
-            Tuple<string, Monopoly.Type, int, bool>[] actualCompanies = monopoly.GetFieldsList().ToArray();
+            Tuple<string, Monopoly.FieldType, int, bool>[] actualCompanies = monopoly.GetFieldsList().ToArray();
             Assert.AreEqual(expectedCompanies, actualCompanies);
         }
         [Test]
@@ -49,12 +49,12 @@ namespace Monopoly
         {
             string[] players = new string[] { "Peter", "Ekaterina", "Alexander" };
             Monopoly monopoly = new Monopoly(players, 3);
-            Tuple<string, Monopoly.Type, int, bool> x = monopoly.GetFieldByName("Ford");
+            Tuple<string, Monopoly.FieldType, int, bool> x = monopoly.GetFieldByName("Ford");
             monopoly.Buy(1, x);
             Tuple<string,int> actualPlayer = monopoly.GetPlayerInfo(1);
             Tuple<string, int> expectedPlayer = new Tuple<string, int>("Peter", 5500);
             Assert.AreEqual(expectedPlayer, actualPlayer);
-            Tuple<string, Monopoly.Type, int, bool> actualField = monopoly.GetFieldByName("Ford");
+            Tuple<string, Monopoly.FieldType, int, bool> actualField = monopoly.GetFieldByName("Ford");
             Assert.AreEqual(1, actualField.Item3);
         }
         [Test]
@@ -62,7 +62,7 @@ namespace Monopoly
         {
             string[] players = new string[] { "Peter", "Ekaterina", "Alexander" };
             Monopoly monopoly = new Monopoly(players, 3);
-            Tuple<string, Monopoly.Type, int, bool>  x = monopoly.GetFieldByName("Ford");
+            Tuple<string, Monopoly.FieldType, int, bool>  x = monopoly.GetFieldByName("Ford");
             monopoly.Buy(1, x);
             x = monopoly.GetFieldByName("Ford");
             monopoly.Renta(2, x);
