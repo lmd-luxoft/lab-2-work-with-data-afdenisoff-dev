@@ -1,150 +1,71 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Monopoly.Abstract;
+using Monopoly.Constants;
+using Monopoly.Fields;
 
 namespace Monopoly
 {
-    class Monopoly
+    partial class Monopoly
     {
-        public List<Tuple<string, int>> players = new List<Tuple<string, int>>();
-        public List<Tuple<string, Monopoly.Type, int, bool>> fields = new List<Tuple<string, Type, int, bool>>();
-        public Monopoly(string[] p, int v)
+        internal List<Player> Players { get; } = new List<Player>();
+
+        internal List<Field> Fields { get; } = new List<Field>();
+        
+        public Monopoly(string[] playerNames)
         {
-            for (int i = 0; i < v; i++)
+            for (int i = 0; i < playerNames.Count(); i++)
             {
-                players.Add(new Tuple<string,int>(p[i], 6000));     
+                Players.Add(new Player(playerNames[i], FieldsPrice.StartupPlayerCapital));
             }
-            fields.Add(new Tuple<string, Monopoly.Type, int, bool>("Ford", Monopoly.Type.AUTO, 0, false));
-            fields.Add(new Tuple<string, Monopoly.Type, int, bool>("MCDonald", Monopoly.Type.FOOD, 0, false));
-            fields.Add(new Tuple<string, Monopoly.Type, int, bool>("Lamoda", Monopoly.Type.CLOTHER, 0, false));
-            fields.Add(new Tuple<string, Monopoly.Type, int, bool>("Air Baltic", Monopoly.Type.TRAVEL, 0, false));
-            fields.Add(new Tuple<string, Monopoly.Type, int, bool>("Nordavia", Monopoly.Type.TRAVEL, 0, false));
-            fields.Add(new Tuple<string, Monopoly.Type, int, bool>("Prison", Monopoly.Type.PRISON, 0, false));
-            fields.Add(new Tuple<string, Monopoly.Type, int, bool>("MCDonald", Monopoly.Type.FOOD, 0, false));
-            fields.Add(new Tuple<string, Monopoly.Type, int, bool>("TESLA", Monopoly.Type.AUTO, 0, false));
+
+            SetFields();
+
+            SetSpesialFields();
         }
 
-        internal List<Tuple<string, int>> GetPlayersList()
+        internal bool Buy(Player player, Field field)
         {
-            return players;
-        }
+            if (field.IsBought)
+                return false;
 
-        internal enum Type
-        {
-            AUTO,
-            FOOD,
-            CLOTHER,
-            TRAVEL,
-            PRISON,
-            BANK
-        }
+             field.BuyByPlayer(player);
 
-        internal List<Tuple<string, Monopoly.Type, int, bool>> GetFieldsList()
-        {
-            return fields;
-        }
-
-        internal Tuple<string, Type, int, bool> GetFieldByName(string v)
-        {
-            return (from p in fields where p.Item1 == v select p).FirstOrDefault();
-        }
-
-        internal bool Buy(int v, Tuple<string, Type, int, bool> k)
-        {
-            var x = GetPlayerInfo(v);
-            int cash = 0;
-            switch(k.Item2)
-            {
-                case Type.AUTO:
-                    if (k.Item3 != 0)
-                        return false;
-                    cash = x.Item2 - 500;
-                    players[v - 1] = new Tuple<string, int>(x.Item1, cash);
-                    break;
-                case Type.FOOD:
-                    if (k.Item3 != 0)
-                        return false;
-                    cash = x.Item2 - 250;
-                    players[v - 1] = new Tuple<string, int>(x.Item1, cash);
-                    break;
-                case Type.TRAVEL:
-                    if (k.Item3 != 0)
-                        return false;
-                    cash = x.Item2 - 700;
-                    players[v - 1] = new Tuple<string, int>(x.Item1, cash);
-                    break;
-                case Type.CLOTHER:
-                    if (k.Item3 != 0)
-                        return false;
-                    cash = x.Item2 - 100;
-                    players[v - 1] = new Tuple<string, int>(x.Item1, cash);
-                    break;
-                default:
-                    return false;
-            }
-            int i = players.Select((item, index) => new { name = item.Item1, index = index })
-                .Where(n => n.name == x.Item1)
-                .Select(p => p.index).FirstOrDefault();
-            fields[i] = new Tuple<string, Type, int, bool>(k.Item1, k.Item2, v, k.Item4);
              return true;
         }
 
-        internal Tuple<string, int> GetPlayerInfo(int v)
+        internal bool Renta(Player player, Field field)
         {
-            return players[v - 1];
+            if (!field.IsBought)
+                return false;
+
+            player.SubMoney(field.RentalPrice);
+            field.Owner.AddMoney(field.RentalPrice);
+
+            return true;
         }
 
-        internal bool Renta(int v, Tuple<string, Type, int, bool> k)
+        private void SetFields()
         {
-            var z = GetPlayerInfo(v);
-            Tuple<string, int> o = null;
-            switch(k.Item2)
-            {
-                case Type.AUTO:
-                    if (k.Item3 == 0)
-                        return false;
-                    o =  GetPlayerInfo(k.Item3);
-                    z = new Tuple<string, int>(z.Item1, z.Item2 - 250);
-                    o = new Tuple<string, int>(o.Item1,o.Item2 + 250);
-                    break;
-                case Type.FOOD:
-                    if (k.Item3 == 0)
-                        return false;
-                    o = GetPlayerInfo(k.Item3);
-                    z = new Tuple<string, int>(z.Item1, z.Item2 - 250);
-                    o = new Tuple<string, int>(o.Item1, o.Item2 + 250);
+            Fields.Add(new Auto("Ford", FieldsPrice.FieldAutoBuyPrice, FieldsPrice.FieldAutoRentalPrice));
+            Fields.Add(new Food("MCDonald", FieldsPrice.FieldFoodBuyPrice, FieldsPrice.FieldFoodRentalPrice));
+            Fields.Add(new Clother("Lamoda", FieldsPrice.FieldClotherBuyPrice, FieldsPrice.FieldClotherRentalPrice));
+            Fields.Add(new Travel("Air Baltic", FieldsPrice.FieldTravelBuyPrice, FieldsPrice.FieldTravelRentalPrice));
+            Fields.Add(new Travel("Nordavia", FieldsPrice.FieldTravelBuyPrice, FieldsPrice.FieldTravelRentalPrice));
+            Fields.Add(new Food("KFC", FieldsPrice.FieldFoodBuyPrice, FieldsPrice.FieldFoodRentalPrice));
+            Fields.Add(new Auto("TESLA", FieldsPrice.FieldAutoBuyPrice, FieldsPrice.FieldAutoRentalPrice));
+        }
 
-                    break;
-                case Type.TRAVEL:
-                    if (k.Item3 == 0)
-                        return false;
-                    o = GetPlayerInfo(k.Item3);
-                    z = new Tuple<string, int>(z.Item1, z.Item2 - 300);
-                    o = new Tuple<string, int>(o.Item1, o.Item2 + 300);
-                    break;
-                case Type.CLOTHER:
-                    if (k.Item3 == 0)
-                        return false;
-                    o = GetPlayerInfo(k.Item3);
-                    z = new Tuple<string, int>(z.Item1, z.Item2 - 100);
-                    o = new Tuple<string, int>(o.Item1, o.Item2 + 1000);
+        private void SetSpesialFields()
+        {
+            var bankir = new Player(SpesialNames.PlayerBankir, 0);
+            var warder = new Player(SpesialNames.PlayerWarder, 0);
 
-                    break;
-                case Type.PRISON:
-                    z = new Tuple<string, int>(z.Item1, z.Item2 - 1000);
-                    break;
-                case Type.BANK:
-                    z = new Tuple<string, int>(z.Item1, z.Item2 - 700);
-                    break;
-                default:
-                    return false;
-            }
-            players[v - 1] = z;
-            if(o != null)
-                players[k.Item3 - 1] = o;
-            return true;
+            Players.Add(bankir);
+            Players.Add(warder);
+
+            Fields.Add(new Bank(SpesialNames.FieldBank, FieldsPrice.SpesialFieldBankRentalPrice, bankir));
+            Fields.Add(new Prison(SpesialNames.FieldPrison, FieldsPrice.SpesialFieldPrisonRentalPrice, warder));
         }
     }
 }
