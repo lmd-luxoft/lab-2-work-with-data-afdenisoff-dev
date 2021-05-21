@@ -1,362 +1,71 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Monopoly.Abstract;
+using Monopoly.Constants;
+using Monopoly.Fields;
 
 namespace Monopoly
 {
-    class Monopoly
+    partial class Monopoly
     {
-        private readonly List<Player> players = new List<Player>();
+        internal List<Player> Players { get; } = new List<Player>();
 
-        private readonly List<IField> fields = new List<IField>();
+        internal List<Field> Fields { get; } = new List<Field>();
         
-        public Monopoly(string[] p, int v)
+        public Monopoly(string[] playerNames)
         {
-            for (int i = 0; i < v; i++)
+            for (int i = 0; i < playerNames.Count(); i++)
             {
-                players.Add(new Player(p[i], 6000));
+                Players.Add(new Player(playerNames[i], FieldsPrice.StartupPlayerCapital));
             }
-            fields.Add(new Auto("Ford", 500, 250));
-            fields.Add(new Food("MCDonald", 250, 250));
-            fields.Add(new Clother("Lamoda", 100, 100));
-            fields.Add(new Travel("Air Baltic", 700, 300));
-            fields.Add(new Travel("Nordavia", 700, 300));
-            fields.Add(new Prison("Prison", 0, 1000));
-            fields.Add(new Food("MCDonald", 700, 250));
-            fields.Add(new Auto("TESLA", 500, 250));
-            fields.Add(new Bank("Bank", 0, 700));
+
+            SetFields();
+
+            SetSpesialFields();
         }
 
-        internal List<Player> GetPlayersList()
+        internal bool Buy(Player player, Field field)
         {
-            return players;
-        }
-
-        internal List<IField> GetFieldsList()
-        {
-            return fields;
-        }
-
-        internal IField GetFieldByName(string v)
-        {
-            return (from p in fields where p.Name == v select p).FirstOrDefault();
-        }
-
-        internal bool Buy(int playerId, Tuple<string, FieldType, int, bool> k)
-        {
-            if (k.Item3 != 0)
+            if (field.IsBought)
                 return false;
 
-            var player = GetPlayerInfo(playerId);
-            
-            int cash = 0;
+             field.BuyByPlayer(player);
 
-            switch(k.Item2)
-            {
-                case FieldType.AUTO:
-                    cash = player.Cash - 500;
-                    players[playerId - 1] = new Player(player.Name, cash);
-                    break;
-                case FieldType.FOOD:
-                    cash = player.Cash - 250;
-                    players[playerId - 1] = new Tuple<string, int>(player.Item1, cash);
-                    break;
-                case FieldType.TRAVEL:
-                    cash = player.Cash - 700;
-                    players[playerId - 1] = new Tuple<string, int>(player.Item1, cash);
-                    break;
-                case FieldType.CLOTHER:
-                    cash = player.Cash - 100;
-                    players[playerId - 1] = new Tuple<string, int>(player.Item1, cash);
-                    break;
-                default:
-                    return false;
-            }
-
-            int i = players.Select((item, index) => new { name = item.Item1, index = index })
-                .Where(n => n.name == player.Item1)
-                .Select(p => p.index).FirstOrDefault();
-
-            fields[i] = new Tuple<string, FieldType, int, bool>(k.Item1, k.Item2, playerId, k.Item4);
              return true;
         }
 
-        internal Player GetPlayerInfo(int playerId)
+        internal bool Renta(Player player, Field field)
         {
-            return players[playerId - 1];
-        }
-
-        internal bool Renta(int playerId, Field field)
-        {
-            var player = GetPlayerInfo(playerId);
-
-            Tuple<string, int> o = null;
-
-            if (field.PlayerId == 0)
+            if (!field.IsBought)
                 return false;
 
-            switch (field.Type)
-            {
-                case FieldType.AUTO:
-                    o =  GetPlayerInfo(field.PlayerId);
-                    player = new Tuple<string, int>(player.Item1, player.Item2 - 250);
-                    o = new Tuple<string, int>(o.Item1,o.Item2 + 250);
-                    break;
-                case FieldType.FOOD:
-                    o = GetPlayerInfo(field.PlayerId);
-                    player = new Tuple<string, int>(player.Item1, player.Item2 - 250);
-                    o = new Tuple<string, int>(o.Item1, o.Item2 + 250);
-                    break;
-                case FieldType.TRAVEL:
-                    o = GetPlayerInfo(field.PlayerId);
-                    player = new Tuple<string, int>(player.Item1, player.Item2 - 300);
-                    o = new Tuple<string, int>(o.Item1, o.Item2 + 300);
-                    break;
-                case FieldType.CLOTHER:
-                    o = GetPlayerInfo(field.PlayerId);
-                    player = new Tuple<string, int>(player.Item1, player.Item2 - 100);
-                    o = new Tuple<string, int>(o.Item1, o.Item2 + 100);
+            player.SubMoney(field.RentalPrice);
+            field.Owner.AddMoney(field.RentalPrice);
 
-                    break;
-                case FieldType.PRISON:
-                    player = new Tuple<string, int>(player.Item1, player.Item2 - 1000);
-                    break;
-                case FieldType.BANK:
-                    player = new Tuple<string, int>(player.Item1, player.Item2 - 700);
-                    break;
-                default:
-                    return false;
-            }
-            players[playerId - 1] = player;
-
-            if(o != null)
-                players[field.PlayerId - 1] = o;
             return true;
         }
 
-        internal enum FieldType
+        private void SetFields()
         {
-            AUTO,
-            FOOD,
-            CLOTHER,
-            TRAVEL,
-            PRISON,
-            BANK
+            Fields.Add(new Auto("Ford", FieldsPrice.FieldAutoBuyPrice, FieldsPrice.FieldAutoRentalPrice));
+            Fields.Add(new Food("MCDonald", FieldsPrice.FieldFoodBuyPrice, FieldsPrice.FieldFoodRentalPrice));
+            Fields.Add(new Clother("Lamoda", FieldsPrice.FieldClotherBuyPrice, FieldsPrice.FieldClotherRentalPrice));
+            Fields.Add(new Travel("Air Baltic", FieldsPrice.FieldTravelBuyPrice, FieldsPrice.FieldTravelRentalPrice));
+            Fields.Add(new Travel("Nordavia", FieldsPrice.FieldTravelBuyPrice, FieldsPrice.FieldTravelRentalPrice));
+            Fields.Add(new Food("KFC", FieldsPrice.FieldFoodBuyPrice, FieldsPrice.FieldFoodRentalPrice));
+            Fields.Add(new Auto("TESLA", FieldsPrice.FieldAutoBuyPrice, FieldsPrice.FieldAutoRentalPrice));
         }
 
-        internal interface IField
-        {          
-            string Name { get; }
-
-            int PlayerId { get; }
-
-            bool IsBought { get; }
-
-            int BuyPrice { get; }
-
-            int RentalPrice { get; }
-
-            void BuyByPlayer(int newPlayerId);
-        }
-
-        internal class Player
+        private void SetSpesialFields()
         {
-            public string Name { get; }
-            public int Cash { get; private set; }
+            var bankir = new Player(SpesialNames.PlayerBankir, 0);
+            var warder = new Player(SpesialNames.PlayerWarder, 0);
 
-            public Player(string name, int startMoney)
-            {
-                Name = name;
-                Cash = startMoney;
-            }
+            Players.Add(bankir);
+            Players.Add(warder);
 
-            public void AddMoney(int moneyToAdd)
-            {
-                Cash += moneyToAdd;
-            }
-
-            public void SubMoney(int moneyToSub)
-            {
-                Cash -= moneyToSub;
-            }
-
-        }
-
-        internal class Field
-        {
-            public FieldType Type { get; }
-
-            public string Name { get; }
-
-            public int PlayerId { get; private set; }
-
-            public bool IsBought { get; private set; }
-
-            public int Price { get; }
-
-            internal Field(FieldType fieldType, string name, int price)
-            {
-                Type = fieldType;
-                Name = name;
-                Price = price;
-            }
-
-            public void ChangePlayer(int newPlayerId)
-            {
-                PlayerId = newPlayerId;
-            }
-        }
-
-        internal class Auto : IField
-        {
-            public string Name { get; }
-
-            public int PlayerId { get; private set; }
-
-            public bool IsBought { get; private set; }
-
-            public int BuyPrice { get; }
-
-            public int RentalPrice { get; }
-
-            internal Auto(string name, int buyPrice, int rentalPrice)
-            {
-                Name = name;
-                BuyPrice = buyPrice;
-                RentalPrice = rentalPrice;
-            }
-
-            public void BuyByPlayer(int newPlayerId)
-            {
-                PlayerId = newPlayerId;
-            }
-        }
-
-        internal class Food : IField
-        {
-            public string Name { get; }
-
-            public int PlayerId { get; private set; }
-
-            public bool IsBought { get; private set; }
-
-            public int BuyPrice { get; }
-
-            public int RentalPrice { get; }
-
-            internal Food(string name, int buyPrice, int rentalPrice)
-            {
-                Name = name;
-                BuyPrice = buyPrice;
-                RentalPrice = rentalPrice;
-            }
-
-            public void BuyByPlayer(int newPlayerId)
-            {
-                PlayerId = newPlayerId;
-            }
-        }
-
-        internal class Clother : IField
-        {
-            public string Name { get; }
-
-            public int PlayerId { get; private set; }
-
-            public bool IsBought { get; private set; }
-
-            public int BuyPrice { get; }
-
-            public int RentalPrice { get; }
-
-            internal Clother(string name, int buyPrice, int rentalPrice)
-            {
-                Name = name;
-                BuyPrice = buyPrice;
-                RentalPrice = rentalPrice;
-            }
-
-            public void BuyByPlayer(int newPlayerId)
-            {
-                PlayerId = newPlayerId;
-            }
-        }
-
-        internal class Travel : IField
-        {
-            public string Name { get; }
-
-            public int PlayerId { get; private set; }
-
-            public bool IsBought { get; private set; }
-
-            public int BuyPrice { get; }
-
-            public int RentalPrice { get; }
-
-            internal Travel(string name, int buyPrice, int rentalPrice)
-            {
-                Name = name;
-                BuyPrice = buyPrice;
-                RentalPrice = rentalPrice;
-            }
-
-            public void BuyByPlayer(int newPlayerId)
-            {
-                PlayerId = newPlayerId;
-            }
-        }
-
-        internal class Prison : IField
-        {
-            public string Name { get; }
-
-            public int PlayerId { get; private set; }
-
-            public bool IsBought { get; private set; }
-
-            public int BuyPrice { get; }
-
-            public int RentalPrice { get; }
-
-            internal Prison(string name, int buyPrice, int rentalPrice)
-            {
-                Name = name;
-                BuyPrice = buyPrice;
-                RentalPrice = rentalPrice;
-            }
-
-            public void BuyByPlayer(int newPlayerId)
-            {
-                PlayerId = newPlayerId;
-            }
-        }
-
-        internal class Bank : IField
-        {
-            public string Name { get; }
-
-            public int PlayerId { get; private set; }
-
-            public bool IsBought { get; private set; }
-
-            public int BuyPrice { get; }
-
-            public int RentalPrice { get; }
-
-            internal Bank(string name, int buyPrice, int rentalPrice)
-            {
-                Name = name;
-                BuyPrice = buyPrice;
-                RentalPrice = rentalPrice;
-            }
-
-            public void BuyByPlayer(int newPlayerId)
-            {
-                PlayerId = newPlayerId;
-            }
+            Fields.Add(new Bank(SpesialNames.FieldBank, FieldsPrice.SpesialFieldBankRentalPrice, bankir));
+            Fields.Add(new Prison(SpesialNames.FieldPrison, FieldsPrice.SpesialFieldPrisonRentalPrice, warder));
         }
     }
 }

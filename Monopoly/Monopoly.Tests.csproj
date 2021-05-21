@@ -11,10 +11,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Monopoly</RootNamespace>
     <AssemblyName>Monopoly</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,14 +35,28 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=3.11.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.11.0\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Abstract\SpesialField.cs" />
+    <Compile Include="Abstract\Field.cs" />
+    <Compile Include="Fields\Auto.cs" />
+    <Compile Include="Fields\Bank.cs" />
+    <Compile Include="Fields\Clother.cs" />
+    <Compile Include="Fields\Food.cs" />
+    <Compile Include="Player.cs" />
+    <Compile Include="Constants\FieldsPrice.cs" />
+    <Compile Include="Constants\SpesialNames.cs" />
     <Compile Include="Monopoly.cs" />
+    <Compile Include="Fields\Prison.cs" />
     <Compile Include="TestClass.cs" />
+    <Compile Include="Fields\Travel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
